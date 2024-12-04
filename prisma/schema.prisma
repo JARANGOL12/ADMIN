@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model capacitaciones {
+  id             Int       @id @default(autoincrement())
+  titulo         String    @db.VarChar(255)
+  descripcion    String?   @db.Text
+  fecha_inicio   DateTime? @db.Timestamp(0)
+  fecha_fin      DateTime? @db.Timestamp(0)
+  fecha_creacion DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model consultas {
+  id             Int              @id @default(autoincrement())
+  texto_consulta String           @db.Text
+  estado         consultas_estado
+  fecha_creacion DateTime?        @default(now()) @db.Timestamp(0)
+  usuario_id     Int?
+  usuarios       usuarios?        @relation(fields: [usuario_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "consultas_ibfk_1")
+
+  @@index([usuario_id], map: "usuario_id")
+}
+
+model reportes {
+  id            Int           @id @default(autoincrement())
+  tipo          reportes_tipo
+  fechaCreacion DateTime?     @default(now()) @db.Timestamp(0)
+  idUsuario     Int?
+  usuarios      usuarios?     @relation(fields: [idUsuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reportes_ibfk_1")
+
+  @@index([idUsuario], map: "idUsuario")
+}
+
+model tareas {
+  id              Int               @id @default(autoincrement())
+  Titulo          String            @db.VarChar(255)
+  Descripcion     String?           @db.Text
+  Estado          tareas_Estado
+  Prioridad       tareas_Prioridad? @default(normal)
+  asignado        Int?
+  fechaCreacion   DateTime?         @default(now()) @db.Timestamp(0)
+  fechaCompletada DateTime?         @db.Timestamp(0)
+  usuarios        usuarios?         @relation(fields: [asignado], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "tareas_ibfk_1")
+
+  @@index([asignado], map: "asignado")
+}
+
+model usuarios {
+  id                 Int          @id @default(autoincrement())
+  nombre             String       @db.VarChar(255)
+  email              String       @db.VarChar(255)
+  rol                usuarios_rol
+  contrasena         String       @db.VarChar(255)
+  fechaCreacion      DateTime?    @default(now()) @db.Timestamp(0)
+  fechaActualizacion DateTime?    @default(now()) @db.Timestamp(0)
+  consultas          consultas[]
+  reportes           reportes[]
+  tareas             tareas[]
+}
+
+enum reportes_tipo {
+  nuevo
+  atencion_Diaria
+  atencion_semanal
+  atencion_mensual
+}
+
+enum consultas_estado {
+  pendiente
+  respondida
+}
+
+enum tareas_Estado {
+  nueva
+  realizada
+  pendiente
+}
+
+enum usuarios_rol {
+  docente
+  jefatura
+  administrador
+}
+
+enum tareas_Prioridad {
+  normal
+  urgente
+}
